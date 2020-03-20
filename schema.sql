@@ -1,0 +1,8 @@
+CREATE TABLE message (
+	id BIGINT NOT NULL PRIMARY KEY,
+	content TEXT,
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+	channel BIGINT NOT NULL,
+	guild BIGINT NOT NULL,
+	author BIGINT NOT NULL
+);
