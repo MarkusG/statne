@@ -16,7 +16,11 @@ class MyClient(discord.Client):
         print('Fetching messages')
         cur.execute('SELECT timestamp FROM message \
                 ORDER BY message.timestamp DESC LIMIT 1;')
-        latest = cur.fetchone()[0]
+        record = cur.fetchone()
+        if record is not None:
+            latest = record[0]
+        else:
+            latest = datetime(1970, 1, 1)
         for channel in dickne.text_channels:
             try:
                 async for message in channel.history(limit=None, after=latest):
