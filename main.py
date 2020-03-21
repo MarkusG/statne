@@ -20,10 +20,14 @@ class MyClient(discord.Client):
         if record is not None:
             latest = record[0]
         else:
-            latest = datetime(1970, 1, 1)
+            latest = None
         for channel in dickne.text_channels:
             try:
-                async for message in channel.history(limit=None, after=latest):
+                if latest is not None:
+                    history = channel.history(limit=None, after=latest)
+                else:
+                    history = channel.history(limit=None, oldest_first=True)
+                async for message in history:
                     if message.author.bot:
                         continue
                     cur.execute("INSERT INTO message \
