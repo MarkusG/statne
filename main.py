@@ -9,9 +9,11 @@ conn = psycopg2.connect("dbname=discord")
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged in as {0}'.format(self.user))
-        print('Fetching messages')
         dickne = self.get_guild(467775901686431755);
         cur = conn.cursor()
+
+        # fetch messages
+        print('Fetching messages')
         cur.execute('SELECT timestamp FROM message \
                 ORDER BY message.timestamp DESC LIMIT 1;')
         latest = cur.fetchone()[0]
@@ -34,10 +36,32 @@ class MyClient(discord.Client):
                             .format(message, content))
             except discord.errors.Forbidden:
                 print('cannot read channel {0}'.format(channel.name))
+        conn.commit()
+        print('Done fetching messages')
+
+        # fetch usernames
+        print('Fetching usernames')
+        cur.execute("SELECT DISTINCT author FROM message m \
+            WHERE NOT EXISTS ( \
+                SELECT \
+                FROM username \
+                WHERE id = m.author \
+            );")
+
+        for record in cur.fetchall():
+            user = dickne.get_member(record[0])
+            if user is not None:
+                print('Fetched user {0}'.format(user))
+                cur.execute("INSERT INTO username \
+                    (id, name) \
+                    VALUES (%s, %s) \
+                    ON CONFLICT (id) DO UPDATE \
+                    SET name = excluded.name;;",
+                    [user.id, str(user)])
 
         conn.commit()
+        print('Done fetching usernames')
         cur.close()
-        print('Done fetching messages')
 
 
     async def on_message(self, message):
@@ -54,6 +78,12 @@ class MyClient(discord.Client):
             VALUES (%s, %s, %s, %s, %s, %s);",
             [message.id, message.content, message.created_at,
             message.channel.id, message.guild.id, message.author.id])
+        cur.execute("INSERT INTO username \
+            (id, name) \
+            VALUES (%s, %s) \
+            ON CONFLICT (id) DO UPDATE \
+            SET name = excluded.name;;",
+            [message.author.id, str(message.author)])
         conn.commit()
         cur.close()
 

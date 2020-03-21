@@ -6,3 +6,8 @@ CREATE TABLE message (
 	guild BIGINT NOT NULL,
 	author BIGINT NOT NULL
 );
+
+CREATE TABLE username (
+	id BIGINT NOT NULL PRIMARY KEY,
+	name TEXT NOT NULL
+);
